@@ -14,5 +14,5 @@ COPY . .
 RUN npm run build
 ENV NODE_ENV=production
 # На старте запускаем JS из dist
-EXPOSE 3000
+EXPOSE 5000
 CMD ["npm", "start"]
