@@ -2,17 +2,34 @@ server:
   http_listen_port: 9080
   grpc_listen_port: 0
 
-positions:
-  filename: /tmp/positions.yaml
-
 clients:
   - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
   - job_name: docker-logs
-    static_configs:
-      - targets:
-          - localhost
-        labels:
-          job: docker-logs
-          __path__: /var/lib/docker/containers/*/*.log
+    # Сервис-дискавери Docker: читаем Docker socket
+    docker_sd_configs:
+      - host: "unix:///var/run/docker.sock"
+        refresh_interval: 10s
+        # Фильтруем по имени контейнера: оставляем только backend и frontend
+        filters:
+          - name: name
+            values: ["backend", "frontend"]
+    # Избавляемся от ненужных контейнеров (если они попали): пример drop-правила
+    relabel_configs:
+      # Оставляем лишь указанные контейнеры (альтернативно фильтрам выше)
+      - source_labels: [__meta_docker_container_name]
+        regex: "/(backend|frontend)$"
+        action: keep
+      # Отбрасываем системные контейнеры по имени
+      - source_labels: [__meta_docker_container_name]
+        regex: "/(grafana|loki|promtail)$"
+        action: drop
+      # Извлекаем путь к лог-файлу по ID контейнера
+      - source_labels: ["__meta_docker_container_id"]
+        target_label: __path__
+        replacement: /var/lib/docker/containers/$1/*.log
+      # Преобразуем имя контейнера без слеша в метку container_name
+      - source_labels: ["__meta_docker_container_name"]
+        regex: "/(.*)"
+        target_label: container_name
