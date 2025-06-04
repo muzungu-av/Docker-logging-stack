@@ -8,6 +8,8 @@ services:
       - "5001:5001"
     logging:
       driver: json-file
+    volumes:
+      - ./logs/backend:/var/log/backend
 
   frontend:
     build: ./frontend
@@ -16,6 +18,8 @@ services:
       - "5000:5000"
     logging:
       driver: json-file
+    volumes:
+      - ./logs/frontend:/var/log/frontend
 
   loki:
     image: grafana/loki:2.9.0
@@ -24,6 +28,10 @@ services:
       - "3100:3100"
     volumes:
       - ./loki-config.yaml:/etc/loki/local-config.yaml
+      # Здесь монтируем внешнее хранилище для индекса и чанков:
+      - ./loki-storage/index:/loki/index
+      - ./loki-storage/chunks:/loki/chunks
+      - ./loki-storage/cache:/loki/boltdb-cache
 
   promtail:
     image: grafana/promtail:2.9.0

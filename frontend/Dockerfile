@@ -1,5 +1,8 @@
 FROM node:18-alpine
 
+# Создаём директорию под логи и даём права (если нужен не-root пользователь, node)
+RUN mkdir -p /var/log/frontend && chown node:node /var/log/frontend
+
 WORKDIR /app
 ENV NODE_ENV=development
 
