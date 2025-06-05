@@ -1,26 +1,6 @@
 version: "3.8"
 
 services:
-  backend:
-    build: ./backend
-    container_name: backend
-    ports:
-      - "5001:5001"
-    logging:
-      driver: json-file
-    volumes:
-      - ./logs/backend:/var/log/backend
-
-  frontend:
-    build: ./frontend
-    container_name: frontend
-    ports:
-      - "5000:5000"
-    logging:
-      driver: json-file
-    volumes:
-      - ./logs/frontend:/var/log/frontend
-
   loki:
     image: grafana/loki:2.9.0
     container_name: loki
